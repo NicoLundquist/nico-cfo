@@ -1,0 +1,28 @@
+# Credentials & secrets
+.env
+*.db
+plaid-recovery-code.txt
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+
+# Generated
+dashboard.html
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
