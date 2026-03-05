@@ -1,60 +1,122 @@
 # Nico CFO
 
-AI-powered personal and business finance command center.
+**AI-powered personal and business finance command center.**
 
-## What It Does
+Nico CFO aggregates financial data from multiple bank accounts, credit cards, and payment platforms into a single encrypted dashboard — providing real-time visibility into cash flow, spending patterns, and financial health.
 
-Nico CFO aggregates financial data from multiple bank accounts, credit cards, and payment platforms into a single encrypted dashboard. It uses AI to:
+![Dashboard Preview](docs/dashboard-preview.png)
 
-- **Analyze spending patterns** — categorize transactions automatically and identify where money is going
-- **Track cash flow** — visualize income vs. expenses over time with trend analysis
-- **Detect recurring charges** — surface subscriptions and recurring payments across all accounts
-- **Monitor burn rate** — calculate monthly spend rate and financial runway
-- **Generate financial reports** — monthly summaries, category breakdowns, and year-over-year comparisons
-- **Track business revenue** — tag incoming payments by client and generate revenue reports
+---
 
-## How It Works
+## Features
 
-Nico CFO connects to financial institutions through the [Plaid API](https://plaid.com/) to securely pull account balances and transaction history. Data is stored in an encrypted local database (SQLCipher) and analyzed using AI to surface insights, trends, and anomalies.
+### Multi-Account Aggregation
+Connect checking, savings, credit cards, PayPal, and crypto accounts through Plaid's secure banking API. View all balances in one place with a unified net position calculation.
 
-### Architecture
+### AI-Powered Financial Analysis
+Uses AI to analyze transactions and surface actionable insights:
+- Automatic transaction categorization
+- Recurring charge and subscription detection
+- Spending trend analysis and anomaly flagging
+- Budget vs. actual comparisons
+- Cash flow forecasting
+
+### Real-Time Dashboard
+HUD-style command center dashboard with:
+- Net position and account balance gauges
+- Monthly income vs. expense tracking
+- Spending breakdown by category (interactive donut chart)
+- 6-month cash flow trend visualization
+- Recent transactions feed with search and filtering
+- Burn rate calculation and runway estimation
+
+### Business Revenue Tracking
+Tag incoming payments by client to track:
+- Revenue per client over any time period
+- Payment frequency and consistency
+- Total business income vs. personal income
+- Client-level profitability insights
+
+### Conversational CFO
+Query your finances in natural language through MCP (Model Context Protocol) integration:
+- "What did I spend on software this month?"
+- "What's my burn rate?"
+- "Show me all recurring charges"
+- "How much has Three Crowns paid me this year?"
+
+---
+
+## Architecture
 
 ```
 Bank Accounts ──┐
 Credit Cards ───┤
 PayPal ─────────┼──▶ Plaid API ──▶ Encrypted DB ──▶ AI Analysis ──▶ Dashboard
-Coinbase ───────┤                   (SQLCipher)      (Claude)        (Chart.js)
+Coinbase ───────┤     (read-only)   (SQLCipher)      (Claude MCP)    (Chart.js)
 Savings ────────┘
 ```
 
-### Security
+### Tech Stack
 
-- All financial data stored in an AES-256 encrypted SQLite database
-- API credentials stored in macOS Keychain (not in config files)
-- Read-only access to financial institutions (cannot initiate transfers)
-- No open network ports — runs entirely on localhost
-- No cloud storage — all data stays on the local machine
+| Component | Technology |
+|-----------|-----------|
+| Data Aggregation | Plaid API (Transactions, Balances) |
+| Database | SQLCipher (AES-256 encrypted SQLite) |
+| Credential Storage | macOS Keychain |
+| Account Linking | Flask (localhost only) |
+| Dashboard | HTML5, Chart.js, CSS3 |
+| AI Integration | MCP (Model Context Protocol) via FastMCP |
+| Language | Python 3.13 |
 
-## Tech Stack
+---
 
-- **Python** — Core application
-- **Plaid API** — Financial data aggregation
-- **SQLCipher** — Encrypted database
-- **Flask** — Account connection flow
-- **Chart.js** — Dashboard visualizations
-- **MCP (Model Context Protocol)** — AI integration layer
+## Security
 
-## Features
+Nico CFO is designed with security as a first principle:
 
-| Feature | Description |
-|---------|-------------|
-| Multi-account aggregation | Connect checking, savings, credit cards, PayPal, and crypto accounts |
-| Automated categorization | Transactions automatically categorized by Plaid + custom rules |
-| HUD-style dashboard | Real-time visual dashboard with charts, gauges, and trend analysis |
-| Conversational CFO | Query your finances in natural language through AI integration |
-| Client revenue tracking | Tag incoming payments to business clients for revenue reporting |
-| Recurring charge detection | Automatically surface subscriptions and recurring payments |
-| Cash flow forecasting | Burn rate calculation and runway estimation |
+- **Encrypted at rest** — All financial data stored in AES-256 encrypted SQLite database (SQLCipher)
+- **Keychain credentials** — API keys and tokens stored in macOS Keychain, never in config files
+- **Read-only access** — Plaid connection cannot initiate transfers or modify accounts
+- **No open ports** — MCP server communicates via stdio, no HTTP endpoints exposed
+- **Local only** — All data stays on the local machine, no cloud storage or third-party transmission
+- **Minimal scope** — Only requests Transactions product (includes balances), no identity or auth data
+
+---
+
+## Products Used
+
+| Plaid Product | Purpose |
+|---------------|---------|
+| **Transactions** | Pull transaction history for categorization, trend analysis, and spending reports |
+| **Balances** | Real-time account balance monitoring across all connected institutions |
+
+---
+
+## How Plaid Data Is Used
+
+1. **Account Linking** — Users authenticate with their financial institution through Plaid Link (OAuth). Access tokens are stored in macOS Keychain.
+
+2. **Transaction Sync** — Transactions are pulled via Plaid's cursor-based sync API and stored in an encrypted local database. Plaid's automatic categorization is preserved and enhanced with custom tagging.
+
+3. **Balance Monitoring** — Current and available balances are synced daily and stored as snapshots to track balance trends over time.
+
+4. **Analysis & Reporting** — Transaction data is analyzed locally to generate spending reports, detect recurring charges, calculate burn rate, and produce cash flow visualizations. All analysis happens on-device.
+
+5. **No Data Sharing** — Financial data is never transmitted to third parties, stored in cloud services, or used for any purpose other than the account holder's personal financial analysis.
+
+---
+
+## Data Flow
+
+```
+Plaid API ──▶ Local Sync Engine ──▶ Encrypted Database (SQLCipher)
+                                           │
+                                           ├──▶ Dashboard Generator ──▶ HTML Dashboard
+                                           │
+                                           └──▶ MCP Server ──▶ AI Analysis (local only)
+```
+
+---
 
 ## License
 
